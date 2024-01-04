@@ -1,39 +1,64 @@
-pipeline {
+pipeline 
+{
     agent any
-    environment {
+    environment 
+    {
         RELEASE='20.04'
+        TARGET_ENVIRONMENT='PROD'
+        EC2_INSTANCE_IP='34.229.161.130'
+        EC2_INSTANCE_CREDENTIALS='9a09fe0a-8d24-486c-b75e-5a9872645d7e'
     }
-    stages {
-        stage('Build') {
+    stages 
+    {
+        stage('Build') 
+        {
             agent any
-            environment {
+            environment 
+            {
                 LOG_LEVEL='INFO'
             }
-            steps {
+            steps 
+            {
                 echo "Building release ${RELEASE} with log level ${LOG_LEVEL}..."
             }
         }
-        stage('Test') {
-            steps {
+        stage('Test') 
+        {
+            steps 
+            {
                 echo "Testing release ${RELEASE}..."
             }
         }
-        stage('Deploy') {
-            input {
-                message 'Deploy?'
-                ok 'Do it!'
-                parameters {
-                    string(name: 'TARGET_ENVIRONMENT', defaultValue: 'PROD', description: 'Target deployment environment')
+        stage('Deploy TO EC2') 
+        {
+            steps 
+            {
+               script 
+               {
+                 echo "Deploying release ${RELEASE} to EC2 instance ${EC2_INSTANCE_IP}..."
+                   SSHCommand remote: 
+                   [
+                      host: EC2_INSTANCE_IP,
+                      user: 'ubuntu',
+                      identityFile: [credentialsId: EC2_SSH_CREDENTIALS, path: '/var/jenkins_home/credentials/private-key.pem' ]
+                   ], command: '''
+                      cd /home/ubuntu/deployement/JenkinsV1
+                      # Example deployment commands
+                      git pull origin main
+                      npm install
+                      pm2 restart your-app
+                  . . .
+               }
                 }
             }
-            steps {
-                echo "Deploying release ${RELEASE} to environment ${TARGET_ENVIRONMENT}"
+    }
+            post 
+            {
+                 always 
+                 {
+                echo "Prints whether deploy happend or not, success or failure"
             }
         }        
     }
-    post{
-        always {
-             echo 'Prints whether deploy happened or not, success or failure'
-        }
-    }
-}
+    
+  
