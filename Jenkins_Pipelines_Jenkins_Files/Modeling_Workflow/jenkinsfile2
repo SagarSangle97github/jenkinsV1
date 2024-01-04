@@ -36,7 +36,7 @@ pipeline
                script 
                {
                  echo "Deploying release ${RELEASE} to EC2 instance ${EC2_INSTANCE_IP}..."
-                   SSHCommand remote: 
+                   sshCommand remote: 
                    [
                       host: EC2_INSTANCE_IP,
                       user: 'ubuntu',
